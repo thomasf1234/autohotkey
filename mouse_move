@@ -1,0 +1,93 @@
+class AnalogStick
+{
+  __New(x, y, xOffset=0, yOffset=0)
+  {
+    this.prevX := 0
+    this.prevY := 0
+    this.x := x
+    this.y := y
+    this.xOffset := xOffset
+    this.yOffset := yOffset
+    TransformToCircle(x - xOffset, y - yOffset)
+  }
+
+  Radius()
+  {
+    return abs(this.x) > abs(this.y) ? abs(this.x) : abs(this.y)
+  }
+
+  TransformToCircle(x, y)
+  {
+    r := abs(x) > abs(y) ? abs(x) : abs(y)
+    this.transX := r / Sqrt(1+((y/x)**2))
+    this.transY := this.transX * (y/x)
+  }
+
+  #avoid creating hundreds of thousands of objects, can just keep singleton
+  Update(x, y)
+  {
+    this.prevX := this.x
+    this.prevY := this.y
+    this.prevTransX := this.transX
+    this.prevTransY := this.transY
+    this.x := x
+    this.y := y
+    TransformToCircle(x - this.xOffset, y - this.yOffset)
+  }
+}
+
+if (Joy)
+{
+  Joy.Update(GetKeyState(JoyX), GetKeyState(JoyY))
+}
+else
+{
+  Joy = new AnalogStick(GetKeyState(JoyX), GetKeyState(JoyY), 50, 50)
+}
+
+
+SetMouseDelay(-1)
+if (Joy.Radius() > 30)
+{
+  MouseMove(Joy.transX - Joy.prevTransX, Joy.transY - Joy.prevTransY, 0, R)
+}
+else
+{
+   ;move mouse back to center of screen, else get stuck at boundary
+   ;prevJoy[0] = 50
+   ;prevJoy[1] = 50
+   ;MouseMove(A_ScreenWidth / 2, A_ScreenHeight / 2, 0)
+}
+
+
+
+
+
+
+;joystick.ahk
+TransformToCircle(byref pos)
+{
+  r := pos[0] > pos[1] ? pos[0] : pos[1]
+  x := r / Sqrt(1+((pos[1]/pos[0])**2))
+  y := x * (pos[1]/pos[0])
+  pos[0] := x
+  pos[1] := y
+}
+
+;script
+prevJoy = Array(Joy[0], JoyY[1])
+Joy = Array(GetKeyState(JoyX), GetKeyState(JoyY)
+
+SetMouseDelay(-1)
+if (!WithinCircle(Joy[0], Joy[1], 30))
+{
+  TransformToCircle(Joy)
+  MouseMove(Joy[0] - prevJoy[0], Joy[1] - prevJoy[1], 0, R)
+}
+else
+{
+   ;move mouse back to center of screen, else get stuck at boundary
+   prevJoy[0] = 50
+   prevJoy[1] = 50
+   MouseMove(A_ScreenWidth / 2, A_ScreenHeight / 2, 0)
+}
